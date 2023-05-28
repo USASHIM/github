@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<script src="js/jquery-2.1.3.min.js"></script>
+<link rel="stylesheet" href="css/sample.css">
+<title>じゃんけん</title>
+</head>
+<body>
+
+<header>
+  <h1>じゃんけん</h1>
+</header>
+
+<main>
+  <ul>
+    <!-- <li button onclick="Janken_Gu" id="gu_btn" >グー</li> -->
+    <!-- <li id="cho_btn">チョキ</li> -->
+    <!-- <li id="par_btn">パー</li> -->
+  </ul>
+  <button onclick="Janken_Gu()">グー</button>
+  <button onclick="Janken_Choki()">チョキ</button>
+  <button onclick="Janken_Pa()">パー</button>
+
+  <div>あなたの出した手は？
+    「<span id="your_hands" style="color:red"></span>」
+  </div>
+
+  <div>コンピュータの出した手は？
+    「<span id="pc_hands" style="color:red"></span>」
+  </div>
+  <div id="judgment">勝ち</div>
+</main>
+
+<script>
+  // 自分の手を確定させる
+  function Janken_Gu(){
+    confirm("あなたの手はグーですね？");
+    if( res == true){
+
+    }
+  }
+  
+  function Janken_Pa(){
+  confirm("あなたの手はパーですね？");
+  }
+  function Janken_Choki(){
+  confirm("あなたの手はチョキですね？");
+  }
+
+  // グーチョキパーの3つの中からランダムに結果を出力する
+  let result = Math.ceil( Math.random() * 3 );
+  if (result == 1){
+      console.log("グー");
+      <your_hands>グー<>
+
+  }else if(result ==2){
+      console.log("チョキ");
+  }else if(result ==3){
+      console.log("パー");
+  }
+  
+  </script>
+
+<footer></footer>
+<script>
+//じゃんけん用のSCRIPTを書いてください
+
+
+    
+    
+    
+    
+    
+    
+
+</script>
+</body>
+</html>
