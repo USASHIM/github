@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>日記アプリ</title>
+  <style>
+    textarea {
+      width: 100%;
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>日記アプリ</h1>
+  <input type="date" id="dateInput">
+  <textarea id="diaryText" placeholder="日記を入力してください"></textarea>
+  <button id="saveButton">保存</button>
+  <div id="diaryList"></div>
+
+  <script>
+    // 保存ボタンがクリックされたときの処理
+    document.getElementById('saveButton').addEventListener('click', function() {
+      var dateInput = document.getElementById('dateInput');
+      var diaryText = document.getElementById('diaryText');
+
+      if (dateInput.value && diaryText.value) {
+        saveDiary(dateInput.value, diaryText.value);
+        dateInput.value = '';
+        diaryText.value = '';
+        displayDiaries();
+      }
+    });
+
+    // 日記を保存する関数
+    function saveDiary(date, text) {
+      var diaries = getSavedDiaries();
+      var newDiary = {
+        date: date,
+        text: text
+      };
+      diaries.push(newDiary);
+      localStorage.setItem('diaries', JSON.stringify(diaries));
+    }
+
+    // 保存された日記を取得する関数
+    function getSavedDiaries() {
+      var savedDiaries = localStorage.getItem('diaries');
+      if (savedDiaries) {
+        return JSON.parse(savedDiaries);
+      } else {
+        return [];
+      }
+    }
+
+    // 保存された日記を表示する関数
+    function displayDiaries() {
+      var diaryList = document.getElementById('diaryList');
+      diaryList.innerHTML = '';
+
+      var diaries = getSavedDiaries();
+      for (var i = 0; i < diaries.length; i++) {
+        var diary = diaries[i];
+        var diaryItem = document.createElement('div');
+        diaryItem.innerHTML = '<h3>' + diary.date + '</h3><p>' + diary.text + '</p>';
+        diaryList.appendChild(diaryItem);
+      }
+    }
+
+    // ページ読み込み時に保存された日記を表示
+    window.addEventListener('DOMContentLoaded', function() {
+      displayDiaries();
+    });
+  </script>
+</body>
+</html>

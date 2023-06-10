@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>To-Doアプリ</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    .completed {
+      text-decoration: line-through;
+    }
+    .alert {
+      background-color: #ffc107;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="mb-4">To-Doアプリ</h1>
+    <form id="taskForm">
+      <div class="form-group">
+        <label for="taskName">タスク名:</label>
+        <input type="text" id="taskName" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="dueDate">期日:</label>
+        <input type="datetime-local" id="dueDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="priority">優先度:</label>
+        <select id="priority" class="form-control">
+          <option value="low">低</option>
+          <option value="medium">中</option>
+          <option value="high">高</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="comment">コメントメモ:</label>
+        <textarea id="comment" class="form-control"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">追加</button>
+    </form>
+    <table id="taskList" class="table mt-4">
+      <thead>
+        <tr>
+          <th>タスク名</th>
+          <th>期日</th>
+          <th>優先度</th>
+          <th>コメントメモ</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    var taskForm = document.getElementById('taskForm');
+    var taskNameInput = document.getElementById('taskName');
+    var dueDateInput = document.getElementById('dueDate');
+    var priorityInput = document.getElementById('priority');
+    var commentInput = document.getElementById('comment');
+    var taskList = document.getElementById('taskList').getElementsByTagName('tbody')[0];
+
+    // ページ読み込み時に保存されたタスクを表示
+    window.addEventListener('DOMContentLoaded', function() {
+      displayTasks();
+      checkAlerts();
+    });
+
+    // タスク追加フォームが送信されたときの処理
+    taskForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      var taskName = taskNameInput.value;
+      var dueDate = dueDateInput.value;
+      var priority = priorityInput.value;
+      var comment = commentInput.value;
+
+      if (taskName && dueDate) {
+        addTask(taskName, dueDate, priority, comment);
+        taskForm.reset();
+        displayTasks();
+      }
+    });
+
+    // タスクを追加する関数
+    function addTask(name, dueDate, priority, comment) {
+      var tasks = getSavedTasks();
+      var newTask = {
+        id: Date.now(),
+        name: name,
+        dueDate: dueDate,
+        priority: priority,
+        comment: comment,
+        completed: false
+      };
+      tasks.push(newTask);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // 保存されたタスクを取得する関数
+    function getSavedTasks() {
+      var savedTasks = localStorage.getItem('tasks');
+      if (savedTasks) {
+        return JSON.parse(savedTasks);
+      } else {
+        return [];
+      }
+    }
+
+    // タスクを表示する関数
+    function displayTasks() {
+      taskList.innerHTML = '';
+      var tasks = getSavedTasks();
+
+      for (var i = 0; i < tasks.length; i++) {
+        var task = tasks[i];
+        var row = document.createElement('tr');
+
+        var nameCell = document.createElement('td');
+        nameCell.textContent = task.name;
+        if (task.completed) {
+          nameCell.classList.add('completed');
+        }
+        row.appendChild(nameCell);
+
+        var dueDateCell = document.createElement('td');
+        dueDateCell.textContent = task.dueDate;
+        if (isDueDatePassed(task.dueDate)) {
+          dueDateCell.classList.add('alert');
+        }
+        row.appendChild(dueDateCell);
+
+        var priorityCell = document.createElement('td');
+        priorityCell.textContent = task.priority;
+        row.appendChild(priorityCell);
+
+        var commentCell = document.createElement('td');
+        commentCell.textContent = task.comment;
+        row.appendChild(commentCell);
+
+        var actionCell = document.createElement('td');
+        var editButton = document.createElement('button');
+        editButton.textContent = '編集';
+        editButton.classList.add('btn', 'btn-sm', 'btn-primary', 'mr-2');
+        editButton.addEventListener('click', function() {
+          editTask(task.id);
+        });
+        actionCell.appendChild(editButton);
+
+        var deleteButton = document.createElement('button');
+        deleteButton.textContent = '削除';
+        deleteButton.classList.add('btn', 'btn-sm', 'btn-danger');
+        deleteButton.addEventListener('click', function() {
+          deleteTask(task.id);
+        });
+        actionCell.appendChild(deleteButton);
+
+        row.appendChild(actionCell);
+        taskList.appendChild(row);
+      }
+    }
+
+    // タスクの編集を行う関数
+    function editTask(taskId) {
+      var tasks = getSavedTasks();
+      var task = tasks.find(function(task) {
+        return task.id === taskId;
+      });
+
+      if (task) {
+        var updatedName = prompt('タスク名を入力してください', task.name);
+        if (updatedName) {
+          task.name = updatedName;
+          localStorage.setItem('tasks', JSON.stringify(tasks));
+          displayTasks();
+        }
+      }
+    }
+
+    // タスクの削除を行う関数
+    function deleteTask(taskId) {
+      var tasks = getSavedTasks();
+      var updatedTasks = tasks.filter(function(task) {
+        return task.id !== taskId;
+      });
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      displayTasks();
+    }
+
+    // 期日が過ぎているかどうかを判定する関数
+    function isDueDatePassed(dueDate) {
+      var currentDate = new Date();
+      var taskDueDate = new Date(dueDate);
+      return taskDueDate < currentDate;
+    }
+
+    // アラートチェックを行う関数
+    function checkAlerts() {
+      var tasks = getSavedTasks();
+
+      for (var i = 0; i < tasks.length; i++) {
+        var task = tasks[i];
+
+        if (isDueDatePassed(task.dueDate)) {
+          alert('期日が過ぎています: ' + task.name);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+
+
