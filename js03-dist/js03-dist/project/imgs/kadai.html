@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>Chatアプリ</title>
+</head>
+
+<body>
+
+    <!-- コンテンツ表示画面 -->
+    <div>
+        <div>
+            名前: <input type="text" id="uname">
+        </div>
+        <div>
+            <textarea name="" id="text" cols="30" rows="10"></textarea>
+            <button id="send">送信</button>
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <!--/ コンテンツ表示画面 -->
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- JQuery -->
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script>
+        // Firebaseの設定情報
+        const firebaseConfig = {
+            apiKey: "AIzaSyA80FQrU_ajokV3nbvengdWcsn-QoNVwUU",
+            authDomain: "fir-demo-94c08.firebaseapp.com",
+            projectId: "fir-demo-94c08",
+            storageBucket: "fir-demo-94c08.appspot.com",
+            messagingSenderId: "934219151610",
+            appId: "1:934219151610:web:2a067a668424985704b143"
+        };
+
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const dbRef = database.ref('chat');
+
+        // 送信ボタンのクリックイベント
+        $("#send").on("click", function () {
+            const uname = $("#uname").val().trim();
+            const text = $("#text").val().trim();
+
+            if (uname !== '' && text !== '') {
+                const msg = {
+                    uname: uname,
+                    text: text
+                };
+
+                dbRef.push().set(msg);
+
+                $("#text").val('');
+            }
+        });
+
+        // Enterキーでの送信
+        $("#text").on("keypress", function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $("#send").click();
+            }
+        });
+
+        // メッセージの表示とリアルタイム更新
+        dbRef.on("child_added", function (snapshot) {
+            const msg = snapshot.val();
+            const uname = msg.uname;
+            const text = msg.text;
+
+            const messageElement = $("<p></p>").text(uname + ": " + text);
+            $("#output").append(messageElement);
+
+            // スクロールする
+            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+        });
+
+        // メッセージの削除機能
+        dbRef.on("child_removed", function (snapshot) {
+            const key = snapshot.key;
+            $("#" + key).remove();
+        });
+    </script>
+    <!-- Firebase -->
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>Chatアプリ</title>
+</head>
+
+<body>
+
+    <!-- コンテンツ表示画面 -->
+    <div>
+        <div>
+            名前: <input type="text" id="uname">
+        </div>
+        <div>
+            <textarea name="" id="text" cols="30" rows="10"></textarea>
+            <button id="send">送信</button>
+        </div>
+        <div id="output" style="overflow-y: scroll; height: 300px;"></div>
+    </div>
+
+    <!--/ コンテンツ表示画面 -->
+
+
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- JQuery -->
+
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved }
+         from "https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-database.js";
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA80FQrU_ajokV3nbvengdWcsn-QoNVwUU",
+            authDomain: "fir-demo-94c08.firebaseapp.com",
+            projectId: "fir-demo-94c08",
+            storageBucket: "fir-demo-94c08.appspot.com",
+            messagingSenderId: "934219151610",
+            appId: "1:934219151610:web:2a067a668424985704b143"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        // Real Time 
+        const db = getDatabase(app);
+        const dbRef = ref(db, "chat");
+
+        // 送信
+        $("#send").on("click",function(){
+            const msg = {
+                uname: $("#uname").val(),
+                text: $("#text").val()
+            };
+           
+            const newPostRef = push(dbRef);
+            set(newPostRef, msg);
+
+            // インプット欄をクリアする
+            $("#text").val("");
+        });
+
+        // Enterキーでの送信
+        $("#text").on("keypress", function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $("#send").click();
+            }
+        });
+
+        onChildAdded(dbRef, function(data){
+            const msg = data.val();
+            const key = data.key;
+            
+            $("#output").append(`<p>${msg.uname}: ${msg.text}<p>`);
+        });
+
+         
+        
+      
+     // メッセージの追加
+     
+     dbRef.on("child_added", function (snapshot) {
+            var msg = snapshot.val();
+            var key = snapshot.key;
+
+            var messageElement = "<p id='" + key + "'>" + msg.uname + ": " + msg.text + "</p>";
+            $("#output").append(messageElement);
+
+            // 最新のチャットまでスクロール
+            var outputDiv = document.getElementById("output");
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+
+            // メッセージごとに削除ボタンを追加
+            var deleteButton = "<button class='delete' data-key='" + key + "'>削除</button>";
+            $("#" + key).append(deleteButton);
+        });
+
+        // メッセージの削除
+        $(document).on("click", ".delete", function () {
+            var key = $(this).data("key");
+            dbRef.child(key).remove();
+        });
+
+        // メッセージの削除イベントハンドラ
+        dbRef.on("child_removed", function (snapshot) {
+            var key = snapshot.key;
+            $("#" + key).remove();
+        });
+    </script>
+
+
+</body>
+
+</html>
