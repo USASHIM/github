@@ -4,29 +4,71 @@
     <meta charset="UTF-8">
     <title>家系ラーメン検索アプリ</title>
     <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      #container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
       #map {
         height: 400px;
         width: 100%;
+        margin-bottom: 20px;
       }
 
-      #image {
-        max-width: 300px;
+      .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .form-group label {
+        width: 150px;
+        font-weight: bold;
+      }
+
+      .form-group input[type="number"] {
+        width: 100px;
+        padding: 5px;
+      }
+
+      .form-group button {
+        padding: 5px 10px;
+      }
+
+      #calorie-info {
+        margin-bottom: 20px;
+      }
+
+      #image img {
+        max-width: 100%;
       }
     </style>
   </head>
   <body>
-    <h1>家系ラーメン検索アプリ</h1>
-    <div>
-      <button onclick="getCurrentLocation()">現在地から検索</button>
-      <label for="radius">半径（メートル）:</label>
-      <input type="number" id="radius" value="1000">
-      <label for="weight">体重（kg）:</label>
-      <input type="number" id="weight">
-      <button onclick="searchRamen()">検索</button>
+    <div id="container">
+      <h1>家系ラーメン検索アプリ</h1>
+      <div class="form-group">
+        <button onclick="getCurrentLocation()">現在地から検索</button>
+        <label for="radius">半径（メートル）:</label>
+        <input type="number" id="radius" value="1000">
+        <label for="weight">体重（kg）:</label>
+        <input type="number" id="weight">
+        <button onclick="searchRamen()">検索</button>
+      </div>
+      <div id="map"></div>
+      <div id="calorie-info"></div>
+      <div id="image"></div>
     </div>
-    <div id="map"></div>
-    <div id="calorie-info"></div>
-    <div id="image"></div>
     <script>
       let map;
       let service;
