@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>家系ラーメン検索アプリ</title>
+    <style>
+      #map {
+        height: 400px;
+        width: 100%;
+      }
+
+      #image {
+        max-width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>家系ラーメン検索アプリ</h1>
+    <div>
+      <button onclick="getCurrentLocation()">現在地から検索</button>
+      <label for="radius">半径（メートル）:</label>
+      <input type="number" id="radius" value="1000">
+      <label for="weight">体重（kg）:</label>
+      <input type="number" id="weight">
+      <button onclick="searchRamen()">検索</button>
+    </div>
+    <div id="map"></div>
+    <div id="calorie-info"></div>
+    <div id="image"></div>
+    <script>
+      let map;
+      let service;
+      let currentPosition;
+      let selectedPlace;
+      const radiusInput = document.getElementById("radius");
+      const weightInput = document.getElementById("weight");
+      const calorieInfo = document.getElementById("calorie-info");
+      const imageDiv = document.getElementById("image");
+      const CALORIES_PER_METER = 0.001; // カロリー係数（仮の値）
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 35.6895, lng: 139.6917 }, // 東京駅の位置を初期値として指定
+          zoom: 15,
+        });
+        service = new google.maps.places.PlacesService(map);
+      }
+
+      function getCurrentLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            currentPosition = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            map.setCenter(currentPosition);
+          });
+        } else {
+          alert("現在地情報を取得できません");
+        }
+      }
+
+      function searchRamen() {
+        if (!currentPosition) {
+          alert("現在地情報が取得されていません");
+          return;
+        }
+
+        const radius = parseInt(radiusInput.value);
+
+        const request = {
+          location: currentPosition,
+          radius: radius,
+          keyword: "家系ラーメン",
+        };
+
+        service.nearbySearch(request, callback);
+      }
+
+      function callback(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          for (let i = 0; i < results.length; i++) {
+            createMarker(results[i]);
+          }
+        }
+      }
+
+      function createMarker(place) {
+        const marker = new google.maps.Marker({
+          map: map,
+          position: place.geometry.location,
+        });
+
+        const infowindow = new google.maps.InfoWindow({
+          content: place.name,
+        });
+
+        marker.addListener("click", function() {
+          infowindow.open(map, marker);
+          selectedPlace = place;
+          displayRamenImage();
+          calculateCalories();
+        });
+      }
+
+      function calculateCalories() {
+        if (!selectedPlace || !currentPosition) {
+          return;
+        }
+
+        const distance = getDistance(currentPosition, selectedPlace.geometry.location);
+        const weight = parseFloat(weightInput.value);
+        const calorie = distance * CALORIES_PER_METER * weight;
+        calorieInfo.innerText = `目的地までのカロリー: ${calorie.toFixed(2)} カロリー`;
+      }
+
+      function displayRamenImage() {
+        if (!selectedPlace || !selectedPlace.photos || selectedPlace.photos.length === 0) {
+          imageDiv.innerHTML = "画像はありません";
+          return;
+        }
+
+        const photo = selectedPlace.photos[0];
+        const imageUrl = photo.getUrl({ maxWidth: 300, maxHeight: 300 });
+        const imageElement = document.createElement("img");
+        imageElement.src = imageUrl;
+        imageDiv.innerHTML = "";
+        imageDiv.appendChild(imageElement);
+      }
+
+      function getDistance(position1, position2) {
+        const lat1 = position1.lat;
+        const lng1 = position1.lng;
+        const lat2 = position2.lat();
+        const lng2 = position2.lng();
+
+        const radlat1 = Math.PI * lat1 / 180;
+        const radlat2 = Math.PI * lat2 / 180;
+        const theta = lng1 - lng2;
+        const radtheta = Math.PI * theta / 180;
+        let dist =
+          Math.sin(radlat1) * Math.sin(radlat2) +
+          Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+        if (dist > 1) {
+          dist = 1;
+        }
+        dist = Math.acos(dist);
+        dist = dist * 180 / Math.PI;
+        dist = dist * 60 * 1.1515 * 1.609344 * 1000; // メートルに変換
+        return dist;
+      }
+
+      function loadScript() {
+        const script = document.createElement("script");
+        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBOREXFY9k22Zf_1fDy_rXNCqob5bqQO54&libraries=places&callback=initMap";
+        document.body.appendChild(script);
+      }
+
+      window.onload = loadScript;
+    </script>
+  </body>
+</html>
